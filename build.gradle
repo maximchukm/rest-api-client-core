@@ -17,7 +17,7 @@ publishing {
     publications {
         maven(MavenPublication) {
             groupId 'com.maximchuk.rest'
-            artifactId 'rest-core'
+            artifactId 'client-core'
             version "$version"
 
             from components.java

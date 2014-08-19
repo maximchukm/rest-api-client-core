@@ -1,4 +1,4 @@
-package mobi.efarmer.rest.client.core;
+package com.maximchuk.rest.client.core;
 
 /**
  * @author Maxim Maximchuk
@@ -8,7 +8,7 @@ public final class RestApiMethod {
 
     protected String name;
     protected Type type;
-    protected int timeout;
+    protected int timeout = 10000;
 
     public RestApiMethod(String name, Type type) {
         this.name = name;

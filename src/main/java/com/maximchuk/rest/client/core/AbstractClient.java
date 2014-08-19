@@ -1,8 +1,9 @@
-package mobi.efarmer.rest.client.core;
+package com.maximchuk.rest.client.core;
 
-import mobi.efarmer.rest.client.http.HttpException;
+import com.maximchuk.rest.client.http.HttpException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -15,8 +16,9 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,12 +30,16 @@ import java.util.Map;
  */
 public abstract class AbstractClient {
 
-    protected byte[] executeMethod(RestApiMethod method, Map<String, String> params) throws HttpException, IOException {
+    protected String executeMethod(RestApiMethod method) throws IOException, HttpException {
+        return execute(method, null, null, null);
+    }
+
+    protected String executeMethod(RestApiMethod method, Map<String, String> params) throws HttpException, IOException {
         return execute(method, params, null, null);
     }
 
-    protected byte[] executeMethod(RestApiMethod method, String json) throws HttpException, IOException {
-        byte[] response = null;
+    protected String executeMethod(RestApiMethod method, String json) throws HttpException, IOException {
+        String response = null;
         try {
             response = execute(method, null, "application/json", new StringEntity(json, "UTF-8"));
         } catch (UnsupportedEncodingException e) {
@@ -42,16 +48,16 @@ public abstract class AbstractClient {
         return response;
     }
 
-    protected byte[] executeMethod(RestApiMethod method, String contentType, byte[] data) throws HttpException, IOException {
+    protected String executeMethod(RestApiMethod method, String contentType, byte[] data) throws HttpException, IOException {
         return execute(method, null, contentType, new ByteArrayEntity(data));
     }
 
-    private byte[] execute(RestApiMethod method, Map<String, String> params, String contentType, HttpEntity httpEntity) throws HttpException, IOException {
+    private String execute(RestApiMethod method, Map<String, String> params, String contentType, HttpEntity httpEntity) throws HttpException, IOException {
         HttpRequestBase httpRequestBase = null;
         switch (method.type) {
             case GET: {
                 StringBuilder paramBuilder = new StringBuilder();
-                if (!params.isEmpty()) {
+                if (params != null && !params.isEmpty()) {
                     paramBuilder.append("?");
                     for (String key: params.keySet()) {
                         paramBuilder.append(key).append("=").append(params.get(key));
@@ -70,7 +76,7 @@ public abstract class AbstractClient {
                     httpRequestBase.addHeader(new BasicHeader("content-type", contentType));
                     ((HttpPost)httpRequestBase).setEntity(httpEntity);
                 }
-                if (!params.isEmpty()) {
+                if (params != null && !params.isEmpty()) {
                     List<BasicNameValuePair> formParams = new ArrayList<BasicNameValuePair>();
                     for (String key: params.keySet()) {
                         formParams.add(new BasicNameValuePair(key, params.get(key)));
@@ -81,21 +87,21 @@ public abstract class AbstractClient {
             }
         }
 
-        DefaultHttpClient httpClient = new DefaultHttpClient();
+        HttpClient httpClient = new DefaultHttpClient();
         HttpParams clientParams = httpClient.getParams();
         HttpConnectionParams.setConnectionTimeout(clientParams, method.timeout);
         HttpConnectionParams.setSoTimeout(clientParams, method.timeout);
         HttpResponse response = httpClient.execute(httpRequestBase);
         int code = response.getStatusLine().getStatusCode();
         if (code >= 200 && code < 300) {
-            InputStream is = response.getEntity().getContent();
-            byte[] responseData = new byte[is.available()];
+            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+            String responseString;
             try {
-                is.read(responseData);
+                responseString = reader.readLine();
             } finally {
-                is.close();
+                reader.close();
             }
-            return responseData;
+            return responseString;
         } else {
             throw new HttpException(response);
         }

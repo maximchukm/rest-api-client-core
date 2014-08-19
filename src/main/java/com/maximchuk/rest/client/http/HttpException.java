@@ -1,4 +1,4 @@
-package mobi.efarmer.rest.client.http;
+package com.maximchuk.rest.client.http;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;

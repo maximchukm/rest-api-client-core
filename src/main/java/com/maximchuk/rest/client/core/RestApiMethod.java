@@ -16,7 +16,7 @@ public final class RestApiMethod {
     }
 
     public void setTimeout(int timeoutMillis) {
-        this.timeout = timeout;
+        this.timeout = timeoutMillis;
     }
 
     public enum Type {

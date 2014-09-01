@@ -1,6 +1,7 @@
 package com.maximchuk.rest.client.core;
 
 import com.maximchuk.rest.client.http.HttpException;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -84,6 +85,12 @@ public abstract class AbstractClient {
                     ((HttpPost)httpRequestBase).setEntity(new UrlEncodedFormEntity(formParams));
                 }
                 break;
+            }
+        }
+
+        if (method.headers != null) {
+            for (Header header: method.headers) {
+                httpRequestBase.addHeader(header);
             }
         }
 

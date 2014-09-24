@@ -32,17 +32,17 @@ import java.util.Map;
 public abstract class AbstractClient {
 
     protected String executeMethod(RestApiMethod method) throws IOException, HttpException {
-        return execute(method, null, null, null);
+        return executeMethod(method, null, null, null);
     }
 
     protected String executeMethod(RestApiMethod method, Map<String, String> params) throws HttpException, IOException {
-        return execute(method, params, null, null);
+        return executeMethod(method, params, null, null);
     }
 
     protected String executeMethod(RestApiMethod method, String json) throws HttpException, IOException {
         String response = null;
         try {
-            response = execute(method, null, "application/json", new StringEntity(json, "UTF-8"));
+            response = executeMethod(method, "application/json", new StringEntity(json, "UTF-8"));
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -50,10 +50,14 @@ public abstract class AbstractClient {
     }
 
     protected String executeMethod(RestApiMethod method, String contentType, byte[] data) throws HttpException, IOException {
-        return execute(method, null, contentType, new ByteArrayEntity(data));
+        return executeMethod(method, contentType, new ByteArrayEntity(data));
     }
 
-    private String execute(RestApiMethod method, Map<String, String> params, String contentType, HttpEntity httpEntity) throws HttpException, IOException {
+    protected String executeMethod(RestApiMethod method, String contentType, HttpEntity httpEntity) throws HttpException, IOException {
+        return executeMethod(method, null, contentType, httpEntity);
+    }
+
+    protected String executeMethod(RestApiMethod method, Map<String, String> params, String contentType, HttpEntity httpEntity) throws HttpException, IOException {
         HttpRequestBase httpRequestBase = null;
         switch (method.type) {
             case GET: {

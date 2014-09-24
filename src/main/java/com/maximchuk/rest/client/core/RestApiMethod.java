@@ -21,6 +21,10 @@ public final class RestApiMethod {
         this.type = type;
     }
 
+    public RestApiMethod(Type type) {
+        this("", type);
+    }
+
     public void setTimeout(int timeoutMillis) {
         this.timeout = timeoutMillis;
     }
@@ -33,7 +37,7 @@ public final class RestApiMethod {
     }
 
     public enum Type {
-        GET, POST
+        GET, POST, PUT, DELETE
     }
 
 }

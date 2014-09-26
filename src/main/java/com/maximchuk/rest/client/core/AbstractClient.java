@@ -15,10 +15,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,12 +26,23 @@ import java.util.Map;
  */
 public abstract class AbstractClient {
 
+    protected static final String CONTENT_DISPOSITION_HEADER = "Content-Disposition";
+    protected static final String FILENAME_PREF = "filename=";
+
     protected String executeMethod(RestApiMethod method) throws IOException, HttpException {
         return executeMethod(method, null, null, null);
     }
 
+    protected FileEntity executeDownloadMethod(RestApiMethod method) throws IOException, HttpException {
+        return executeDownloadMethod(method, null);
+    }
+
     protected String executeMethod(RestApiMethod method, Map<String, String> params) throws HttpException, IOException {
         return executeMethod(method, params, null, null);
+    }
+
+    protected FileEntity executeDownloadMethod(RestApiMethod method, Map<String, String> params) throws HttpException, IOException {
+        return executeDownloadMethod(method, params, null, null);
     }
 
     protected String executeMethod(RestApiMethod method, String json) throws HttpException, IOException {
@@ -55,7 +63,28 @@ public abstract class AbstractClient {
         return executeMethod(method, null, contentType, httpEntity);
     }
 
+    protected FileEntity executeDownloadMethod(RestApiMethod method, Map<String, String> params, String contentType, HttpEntity httpEntity) throws HttpException, IOException {
+        HttpResponse response = execute(method, params, contentType, httpEntity);
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        getResponseEntity(response).writeTo(byteStream);
+        String header = response.getFirstHeader(CONTENT_DISPOSITION_HEADER).getValue();
+        return new FileEntity(header.substring(header.indexOf(FILENAME_PREF) + FILENAME_PREF.length())
+                .replace("\"", ""), byteStream.toByteArray());
+    }
+
     protected String executeMethod(RestApiMethod method, Map<String, String> params, String contentType, HttpEntity httpEntity) throws HttpException, IOException {
+        HttpResponse response = execute(method, params, contentType, httpEntity);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(getResponseEntity(response).getContent()));
+        String responseString;
+        try {
+            responseString = reader.readLine();
+            return responseString;
+        } finally {
+            reader.close();
+        }
+    }
+
+    private HttpResponse execute(RestApiMethod method, Map<String, String> params, String contentType, HttpEntity httpEntity) throws HttpException, IOException {
         HttpRequestBase httpRequestBase = null;
         switch (method.type) {
             case GET: {
@@ -110,20 +139,7 @@ public abstract class AbstractClient {
         HttpParams clientParams = httpClient.getParams();
         HttpConnectionParams.setConnectionTimeout(clientParams, method.timeout);
         HttpConnectionParams.setSoTimeout(clientParams, method.timeout);
-        HttpResponse response = httpClient.execute(httpRequestBase);
-        int code = response.getStatusLine().getStatusCode();
-        if (code >= 200 && code < 300) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-            String responseString;
-            try {
-                responseString = reader.readLine();
-            } finally {
-                reader.close();
-            }
-            return responseString;
-        } else {
-            throw new HttpException(response);
-        }
+        return httpClient.execute(httpRequestBase);
     }
 
     private String buildRequestUrl(String methodName) {
@@ -141,6 +157,15 @@ public abstract class AbstractClient {
             paramBuilder.deleteCharAt(paramBuilder.length() - 1);
         }
         return paramBuilder.toString();
+    }
+
+    private HttpEntity getResponseEntity(HttpResponse response) throws IOException, HttpException {
+        int code = response.getStatusLine().getStatusCode();
+        if (code >= 200 && code < 300) {
+            return response.getEntity();
+        } else {
+            throw new HttpException(response);
+        }
     }
 
     protected abstract String getServiceUrl();

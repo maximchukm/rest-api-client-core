@@ -79,15 +79,17 @@ public abstract class AbstractClient {
     }
 
     protected String executeMethod(RestApiMethod method, Map<String, String> params, String contentType, HttpEntity httpEntity) throws HttpException, IOException {
-        HttpResponse response = execute(method, params, contentType, httpEntity);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(getResponseEntity(response).getContent()));
-        String responseString;
-        try {
-            responseString = reader.readLine();
-            return responseString;
-        } finally {
-            reader.close();
+        String responseString = null;
+        HttpEntity entity = getResponseEntity(execute(method, params, contentType, httpEntity));
+        if (entity != null) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent()));
+            try {
+                responseString = reader.readLine();
+            } finally {
+                reader.close();
+            }
         }
+        return responseString;
     }
 
     private HttpResponse execute(RestApiMethod method, Map<String, String> params, String contentType, HttpEntity httpEntity) throws HttpException, IOException {
@@ -167,8 +169,8 @@ public abstract class AbstractClient {
 
     private HttpEntity getResponseEntity(HttpResponse response) throws IOException, HttpException {
         int code = response.getStatusLine().getStatusCode();
-        if (code >= 200 && code < 300) {
-            return code != 204? response.getEntity(): null;
+        if (code >= 200 && code < 400) {
+            return response.getEntity();
         } else {
             throw new HttpException(response);
         }

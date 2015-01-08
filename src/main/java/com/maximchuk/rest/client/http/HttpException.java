@@ -21,11 +21,13 @@ public class HttpException extends Exception {
         StatusLine statusLine = response.getStatusLine();
         errorCode = statusLine.getStatusCode();
         reasonPhrase = statusLine.getReasonPhrase();
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-            body = reader.readLine();
-        } catch (IOException ex) {
-            //ignore
+        if (response.getEntity() != null) {
+            try {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+                body = reader.readLine();
+            } catch (IOException ex) {
+                //ignore
+            }
         }
 
     }

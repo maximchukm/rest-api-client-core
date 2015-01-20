@@ -1,6 +1,7 @@
 package com.maximchuk.rest.client.core;
 
 import org.apache.http.Header;
+import org.apache.http.StatusLine;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,7 @@ public final class RestApiMethod {
     protected Type type;
     protected int timeout = 10000;
     protected List<Header> headers;
+    protected StatusLine statusLine;
 
     public RestApiMethod(String name, Type type) {
         this.name = name;
@@ -34,6 +36,14 @@ public final class RestApiMethod {
             headers = new ArrayList<Header>();
         }
         headers.add(header);
+    }
+
+    protected void setStatusLine(StatusLine statusLine) {
+        this.statusLine = statusLine;
+    }
+
+    public StatusLine getStatusLine() {
+        return statusLine;
     }
 
     public enum Type {

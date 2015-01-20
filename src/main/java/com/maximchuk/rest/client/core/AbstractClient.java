@@ -147,7 +147,9 @@ public abstract class AbstractClient {
         HttpParams clientParams = httpClient.getParams();
         HttpConnectionParams.setConnectionTimeout(clientParams, method.timeout);
         HttpConnectionParams.setSoTimeout(clientParams, method.timeout);
-        return httpClient.execute(httpRequestBase);
+        HttpResponse response = httpClient.execute(httpRequestBase);
+        method.setStatusLine(response.getStatusLine());
+        return response;
     }
 
     private String buildRequestUrl(String methodName) {

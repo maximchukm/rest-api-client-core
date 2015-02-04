@@ -28,6 +28,7 @@ public abstract class AbstractClient {
 
     protected static final String CONTENT_DISPOSITION_HEADER = "Content-Disposition";
     protected static final String FILENAME_PREF = "filename=";
+    private static final String ENCODING = "UTF-8";
 
     protected String executeMethod(RestApiMethod method) throws IOException, HttpException {
         return executeMethod(method, null, null, null);
@@ -48,7 +49,7 @@ public abstract class AbstractClient {
     protected String executeMethod(RestApiMethod method, String json) throws HttpException, IOException {
         String response = null;
         try {
-            response = executeMethod(method, "application/json", new StringEntity(json, "UTF-8"));
+            response = executeMethod(method, "application/json", new StringEntity(json, ENCODING));
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -105,40 +106,40 @@ public abstract class AbstractClient {
             }
             case POST: {
                 httpRequestBase = new HttpPost(buildRequestUrl(method.name));
-                httpRequestBase.addHeader("charset", "UTF-8");
+                httpRequestBase.addHeader("charset", ENCODING);
                 if (httpEntity != null) {
                     httpRequestBase.addHeader(new BasicHeader("content-type", contentType));
-                    ((HttpPost)httpRequestBase).setEntity(httpEntity);
+                    ((HttpPost) httpRequestBase).setEntity(httpEntity);
                 }
                 if (params != null && !params.isEmpty()) {
                     List<BasicNameValuePair> formParams = new ArrayList<BasicNameValuePair>();
-                    for (String key: params.keySet()) {
+                    for (String key : params.keySet()) {
                         formParams.add(new BasicNameValuePair(key, params.get(key)));
                     }
-                    ((HttpPost)httpRequestBase).setEntity(new UrlEncodedFormEntity(formParams));
+                    ((HttpPost) httpRequestBase).setEntity(getUrlEncodedFormEntity(formParams));
                 }
                 break;
             }
             case PUT: {
                 httpRequestBase = new HttpPut(buildRequestUrl(method.name));
-                httpRequestBase.addHeader("charset", "UTF-8");
+                httpRequestBase.addHeader("charset", ENCODING);
                 if (httpEntity != null) {
                     httpRequestBase.addHeader(new BasicHeader("content-type", contentType));
-                    ((HttpPut)httpRequestBase).setEntity(httpEntity);
+                    ((HttpPut) httpRequestBase).setEntity(httpEntity);
                 }
                 if (params != null && !params.isEmpty()) {
                     List<BasicNameValuePair> formParams = new ArrayList<BasicNameValuePair>();
-                    for (String key: params.keySet()) {
+                    for (String key : params.keySet()) {
                         formParams.add(new BasicNameValuePair(key, params.get(key)));
                     }
-                    ((HttpPut)httpRequestBase).setEntity(new UrlEncodedFormEntity(formParams));
+                    ((HttpPut) httpRequestBase).setEntity(getUrlEncodedFormEntity(formParams));
                 }
                 break;
             }
         }
 
         if (method.headers != null) {
-            for (Header header: method.headers) {
+            for (Header header : method.headers) {
                 httpRequestBase.addHeader(header);
             }
         }
@@ -152,6 +153,12 @@ public abstract class AbstractClient {
         return response;
     }
 
+    private UrlEncodedFormEntity getUrlEncodedFormEntity(List<BasicNameValuePair> formParams) throws UnsupportedEncodingException {
+        UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formParams);
+        entity.setContentEncoding(ENCODING);
+        return entity;
+    }
+
     private String buildRequestUrl(String methodName) {
         return getServiceUrl() + "/" + getControllerName() + "/" + methodName;
     }
@@ -160,7 +167,7 @@ public abstract class AbstractClient {
         StringBuilder paramBuilder = new StringBuilder();
         if (params != null && !params.isEmpty()) {
             paramBuilder.append("?");
-            for (String key: params.keySet()) {
+            for (String key : params.keySet()) {
                 paramBuilder.append(key).append("=").append(params.get(key));
                 paramBuilder.append("&");
             }

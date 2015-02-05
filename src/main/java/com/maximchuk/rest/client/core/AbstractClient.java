@@ -154,7 +154,7 @@ public abstract class AbstractClient {
     }
 
     private UrlEncodedFormEntity getUrlEncodedFormEntity(List<BasicNameValuePair> formParams) throws UnsupportedEncodingException {
-        UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formParams);
+        UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formParams, ENCODING);
         entity.setContentEncoding(ENCODING);
         return entity;
     }

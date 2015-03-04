@@ -7,6 +7,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.*;
+import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -19,6 +20,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Maxim Maximchuk
@@ -150,6 +152,8 @@ public abstract class AbstractClient {
         HttpConnectionParams.setSoTimeout(clientParams, method.timeout);
         HttpResponse response = httpClient.execute(httpRequestBase);
         method.setStatusLine(response.getStatusLine());
+        ClientConnectionManager connectionManager = httpClient.getConnectionManager();
+        connectionManager.closeIdleConnections(method.timeout, TimeUnit.MILLISECONDS);
         return response;
     }
 

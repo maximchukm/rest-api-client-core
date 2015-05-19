@@ -1,6 +1,7 @@
 package com.maximchuk.rest.client.core;
 
 import com.maximchuk.rest.client.http.HttpException;
+import com.maximchuk.rest.client.oauth.OAuthCredential;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -31,6 +32,12 @@ public abstract class AbstractClient {
     protected static final String CONTENT_DISPOSITION_HEADER = "Content-Disposition";
     protected static final String FILENAME_PREF = "filename=";
     private static final String ENCODING = "UTF-8";
+
+    private OAuthCredential credential;
+
+    public void setCredential(OAuthCredential credential) {
+        this.credential = credential;
+    }
 
     protected String executeMethod(RestApiMethod method) throws IOException, HttpException {
         return executeMethod(method, null, null, null);
@@ -144,6 +151,10 @@ public abstract class AbstractClient {
             for (Header header : method.headers) {
                 httpRequestBase.addHeader(header);
             }
+        }
+
+        if (credential != null) {
+            httpRequestBase.addHeader(new BasicHeader("Authorization", "Bearer " + credential.getAccessToken()));
         }
 
         HttpClient httpClient = new DefaultHttpClient();

@@ -27,12 +27,9 @@ import java.util.List;
  */
 public class OAuthCredential {
 
-    private static final String TOKEN_ENDPOINT_URI = "RESTService/oauth/token";
-    private static final String SERVER_URL = "http://efarmer.mobi:8080";
-
     private HttpClient httpClient;
 
-    private String serverUrl;
+    private String tokenEndPointUrl;
 
     private String authCode;
     private String username;
@@ -53,8 +50,6 @@ public class OAuthCredential {
 
     private OAuthCredential() {
         httpClient = new DefaultHttpClient();
-
-        serverUrl = SERVER_URL;
     }
 
     /**
@@ -85,7 +80,7 @@ public class OAuthCredential {
             paramBuilder.addParam("client_id", clientId);
         }
 
-        HttpPost post = new HttpPost(buildUrl(TOKEN_ENDPOINT_URI));
+        HttpPost post = new HttpPost(tokenEndPointUrl);
 
         HttpEntity httpEntity = new UrlEncodedFormEntity(paramBuilder.getParams(), "UTF-8");
         post.setEntity(httpEntity);
@@ -124,7 +119,7 @@ public class OAuthCredential {
         paramBuilder.addParam("code_type", "facebook");
         paramBuilder.addParam("code", facebookToken);
 
-        HttpPost post = new HttpPost(buildUrl(TOKEN_ENDPOINT_URI));
+        HttpPost post = new HttpPost(tokenEndPointUrl);
 
         HttpEntity httpEntity = new UrlEncodedFormEntity(paramBuilder.getParams(), "UTF-8");
         post.setEntity(httpEntity);
@@ -166,7 +161,7 @@ public class OAuthCredential {
      */
     public void refresh() throws IOException, HttpException {
         if (refreshToken != null) {
-            HttpPost post = new HttpPost(buildUrl(TOKEN_ENDPOINT_URI));
+            HttpPost post = new HttpPost(tokenEndPointUrl);
 
             HttpFormParamBuilder paramBuilder = new HttpFormParamBuilder();
             paramBuilder.addParam("grant_type", "refresh_token");
@@ -218,15 +213,6 @@ public class OAuthCredential {
     }
 
     /**
-     * Get server url
-     *
-     * @return server url
-     */
-    public String getServerUrl() {
-        return serverUrl;
-    }
-
-    /**
      * Get refresh token
      *
      * @return refresh token
@@ -265,12 +251,6 @@ public class OAuthCredential {
         }
     }
 
-    private String buildUrl(String uri) {
-        StringBuilder urlBuilder = new StringBuilder(serverUrl);
-        urlBuilder.append("/").append(uri);
-        return urlBuilder.toString();
-    }
-
     private HttpResponse clientExecute(HttpPost httpPost) throws IOException {
         HttpParams params = httpClient.getParams();
         HttpConnectionParams.setConnectionTimeout(params, timeout);
@@ -294,12 +274,24 @@ public class OAuthCredential {
          * @return OAuthCredential
          */
         public OAuthCredential build() {
-            if (credential.clientId == null
+            if (credential.tokenEndPointUrl == null
+                    || credential.clientId == null
                     || credential.clientSecret == null
                     || credential.redirectUri == null) {
-                throw new IllegalArgumentException("clientId, clientSecret and redirectUri must be set");
+                throw new IllegalArgumentException("url, clientId, clientSecret and redirectUri must be set");
             }
             return credential;
+        }
+
+        /**
+         * Set auth server token end point url. Required
+         *
+         * @param tokenEndPointUrl token end point url
+         * @return this builder
+         */
+        public Builder url(String tokenEndPointUrl) {
+            credential.tokenEndPointUrl = tokenEndPointUrl;
+            return this;
         }
 
         /**
@@ -332,17 +324,6 @@ public class OAuthCredential {
          */
         public Builder redirectUri(String redirectUri) {
             credential.redirectUri = redirectUri;
-            return this;
-        }
-
-        /**
-         * Set server url for OAuthCredential. Default http://efarmer.mobi:8080
-         *
-         * @param serverUrl server url
-         * @return this builder
-         */
-        public Builder serverUrl(String serverUrl) {
-            credential.serverUrl = serverUrl;
             return this;
         }
 

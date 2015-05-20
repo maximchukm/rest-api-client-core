@@ -12,8 +12,10 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -32,7 +34,7 @@ public abstract class AbstractClient {
     }
 
     protected FileEntity executeDownload(RestApiMethod method) throws HttpException, IOException {
-        HttpResponse response = executeMethod(method);
+        HttpResponse response = execute(method);
         FileEntity fileEntity = null;
         HttpEntity responseEntity = getResponseEntity(response);
 
@@ -46,7 +48,21 @@ public abstract class AbstractClient {
         return fileEntity;
     }
 
-    protected HttpResponse executeMethod(RestApiMethod method) throws HttpException, IOException {
+    protected String executeMethod(RestApiMethod method) throws IOException, HttpException {
+        String responseString = null;
+        HttpEntity entity = getResponseEntity(execute(method));
+        if (entity != null) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent()));
+            try {
+                responseString = reader.readLine();
+            } finally {
+                reader.close();
+            }
+        }
+        return responseString;
+    }
+
+    private HttpResponse execute(RestApiMethod method) throws HttpException, IOException {
         HttpRequestBase httpRequestBase = method.prepareHttpRequest(buildServerControllerUrl());
 
         if (credential != null) {

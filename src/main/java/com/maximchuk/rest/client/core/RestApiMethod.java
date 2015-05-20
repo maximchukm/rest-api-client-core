@@ -13,7 +13,10 @@ import org.apache.http.message.BasicNameValuePair;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Maxim Maximchuk
@@ -29,7 +32,7 @@ public final class RestApiMethod {
     protected int timeout = 10000;
     protected StatusLine statusLine;
 
-    private Map<String, Objects> params = new HashMap<String, Objects>();
+    private Map<String, Object> params = new HashMap<String, Object>();
 
     private String contentType;
     private HttpEntity httpEntity;
@@ -54,7 +57,7 @@ public final class RestApiMethod {
         headers.add(header);
     }
 
-    public void putParam(String name, Objects value) {
+    public void putParam(String name, Object value) {
         params.put(name, value);
     }
 

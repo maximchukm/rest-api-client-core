@@ -6,6 +6,8 @@ import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.*;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 
@@ -20,10 +22,11 @@ import java.util.*;
 public final class RestApiMethod {
 
     private static final String ENCODING = "UTF-8";
-    protected String name;
-    protected Type type;
+    private String name;
+    private Type type;
+    private List<Header> headers;
+
     protected int timeout = 10000;
-    protected List<Header> headers;
     protected StatusLine statusLine;
 
     private Map<String, Objects> params = new HashMap<String, Objects>();
@@ -37,7 +40,7 @@ public final class RestApiMethod {
     }
 
     public RestApiMethod(Type type) {
-        this("", type);
+        this(null, type);
     }
 
     public void setTimeout(int timeoutMillis) {
@@ -55,16 +58,34 @@ public final class RestApiMethod {
         params.put(name, value);
     }
 
+    public void setStringData(String string) throws UnsupportedEncodingException {
+        httpEntity = new StringEntity(string);
+    }
+
+    public void setJsonStringData(String jsonString) throws UnsupportedEncodingException {
+        contentType = "application/json";
+        httpEntity = new StringEntity(jsonString);
+    }
+
+    public void setByteData(byte[] data, String contentType) {
+        this.contentType = contentType;
+        httpEntity = new ByteArrayEntity(data);
+    }
+
+    public void setHttpEntity(HttpEntity httpEntity, String contentType) {
+        this.httpEntity = httpEntity;
+        this.contentType = contentType;
+    }
+
     public StatusLine getStatusLine() {
         return statusLine;
     }
 
-    protected void setStatusLine(StatusLine statusLine) {
-        this.statusLine = statusLine;
-    }
-
     protected HttpRequestBase prepareHttpRequest(String serverControllerUrl) throws IOException{
         HttpRequestBase httpRequestBase = null;
+        if (name != null) {
+            serverControllerUrl += "/" + name;
+        }
         switch (type) {
             case GET: {
                 httpRequestBase = new HttpGet(serverControllerUrl + buildQueryParamString());

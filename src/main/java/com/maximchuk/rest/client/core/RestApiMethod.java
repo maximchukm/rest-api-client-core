@@ -110,7 +110,7 @@ public final class RestApiMethod {
                 }
             } break;
             case PUT: {
-                httpRequestBase = new HttpPut();
+                httpRequestBase = new HttpPut(serverControllerUrl);
                 httpRequestBase.addHeader("charset", ENCODING);
                 if (httpEntity == null) {
                     httpEntity = buildEncodedFormEntity();

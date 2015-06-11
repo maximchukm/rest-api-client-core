@@ -27,8 +27,6 @@ import java.util.List;
  */
 public class OAuthCredential {
 
-    private HttpClient httpClient;
-
     private String tokenEndPointUrl;
 
     private String authCode;
@@ -46,11 +44,6 @@ public class OAuthCredential {
     private int timeout = 10000;
 
     private List<OAuthTokenListener> listeners = new ArrayList<OAuthTokenListener>();
-
-
-    private OAuthCredential() {
-        httpClient = new DefaultHttpClient();
-    }
 
     /**
      * Create and return builder of OAuthCredential
@@ -252,6 +245,7 @@ public class OAuthCredential {
     }
 
     private HttpResponse clientExecute(HttpPost httpPost) throws IOException {
+        HttpClient httpClient = new DefaultHttpClient();
         HttpParams params = httpClient.getParams();
         HttpConnectionParams.setConnectionTimeout(params, timeout);
         HttpConnectionParams.setSoTimeout(params, timeout);

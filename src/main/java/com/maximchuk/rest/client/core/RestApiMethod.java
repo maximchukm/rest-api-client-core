@@ -62,12 +62,12 @@ public final class RestApiMethod {
     }
 
     public void setStringData(String string) throws UnsupportedEncodingException {
-        httpEntity = new StringEntity(string);
+        httpEntity = new StringEntity(string, ENCODING);
     }
 
     public void setJsonStringData(String jsonString) throws UnsupportedEncodingException {
         contentType = "application/json";
-        httpEntity = new StringEntity(jsonString);
+        httpEntity = new StringEntity(jsonString, ENCODING);
     }
 
     public void setByteData(byte[] data, String contentType) {

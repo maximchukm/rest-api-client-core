@@ -57,6 +57,10 @@ public final class RestApiMethod {
         headers.add(header);
     }
 
+    public void setParams(Map<String, Object> params) {
+        this.params = params;
+    }
+
     public void putParam(String name, Object value) {
         params.put(name, value);
     }

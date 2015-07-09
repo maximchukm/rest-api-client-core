@@ -33,6 +33,7 @@ public final class RestApiMethod {
     protected StatusLine statusLine;
 
     private Map<String, Object> params = new HashMap<String, Object>();
+    private boolean forceQueryParams = false;
 
     private String contentType;
     private HttpEntity httpEntity;
@@ -55,6 +56,10 @@ public final class RestApiMethod {
             headers = new ArrayList<Header>();
         }
         headers.add(header);
+    }
+
+    public void forceQueryParams(boolean force) {
+        forceQueryParams = force;
     }
 
     public void setParams(Map<String, Object> params) {
@@ -88,7 +93,7 @@ public final class RestApiMethod {
         return statusLine;
     }
 
-    protected HttpRequestBase prepareHttpRequest(String serverControllerUrl) throws IOException{
+    protected HttpRequestBase prepareHttpRequest(String serverControllerUrl) throws IOException {
         HttpRequestBase httpRequestBase = null;
         if (name != null) {
             serverControllerUrl += "/" + name;
@@ -96,27 +101,30 @@ public final class RestApiMethod {
         switch (type) {
             case GET: {
                 httpRequestBase = new HttpGet(serverControllerUrl + buildQueryParamString());
-            } break;
+            }
+            break;
             case DELETE: {
                 httpRequestBase = new HttpDelete(serverControllerUrl + buildQueryParamString());
-            } break;
+            }
+            break;
             case POST: {
-                httpRequestBase = new HttpPost(serverControllerUrl);
+                httpRequestBase = forceQueryParams ? new HttpPost(serverControllerUrl + buildQueryParamString()) : new HttpPost(serverControllerUrl);
                 httpRequestBase.addHeader("charset", ENCODING);
-                if (httpEntity == null) {
+                if (httpEntity == null && !forceQueryParams) {
                     httpEntity = buildEncodedFormEntity();
                 }
                 if (httpEntity != null) {
                     ((HttpPost) httpRequestBase).setEntity(httpEntity);
                 }
                 if (contentType != null) {
-                   httpRequestBase.addHeader(new BasicHeader("content-type", contentType));
+                    httpRequestBase.addHeader(new BasicHeader("content-type", contentType));
                 }
-            } break;
+            }
+            break;
             case PUT: {
-                httpRequestBase = new HttpPut(serverControllerUrl);
+                httpRequestBase = forceQueryParams ? new HttpPut(serverControllerUrl + buildQueryParamString()) : new HttpPut(serverControllerUrl);
                 httpRequestBase.addHeader("charset", ENCODING);
-                if (httpEntity == null) {
+                if (httpEntity == null && !forceQueryParams) {
                     httpEntity = buildEncodedFormEntity();
                 }
                 if (httpEntity != null) {
@@ -125,7 +133,8 @@ public final class RestApiMethod {
                 if (contentType != null) {
                     httpRequestBase.addHeader(new BasicHeader("content-type", contentType));
                 }
-            } break;
+            }
+            break;
         }
 
         if (headers != null) {

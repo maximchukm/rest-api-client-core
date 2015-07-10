@@ -72,16 +72,22 @@ public final class RestApiMethod {
 
     public void setStringData(String string) throws UnsupportedEncodingException {
         httpEntity = new StringEntity(string, ENCODING);
+        addHeader(new BasicHeader("charset", ENCODING));
     }
 
     public void setJsonStringData(String jsonString) throws UnsupportedEncodingException {
         contentType = "application/json";
         httpEntity = new StringEntity(jsonString, ENCODING);
+        addHeader(new BasicHeader("charset", ENCODING));
     }
 
     public void setByteData(byte[] data, String contentType) {
         this.contentType = contentType;
         httpEntity = new ByteArrayEntity(data);
+    }
+
+    public void setByteData(byte[] data) {
+        setByteData(data, "application/octet-stream");
     }
 
     public void setHttpEntity(HttpEntity httpEntity, String contentType) {
@@ -109,7 +115,6 @@ public final class RestApiMethod {
             break;
             case POST: {
                 httpRequestBase = forceQueryParams ? new HttpPost(serverControllerUrl + buildQueryParamString()) : new HttpPost(serverControllerUrl);
-                httpRequestBase.addHeader("charset", ENCODING);
                 if (httpEntity == null && !forceQueryParams) {
                     httpEntity = buildEncodedFormEntity();
                 }
@@ -123,7 +128,6 @@ public final class RestApiMethod {
             break;
             case PUT: {
                 httpRequestBase = forceQueryParams ? new HttpPut(serverControllerUrl + buildQueryParamString()) : new HttpPut(serverControllerUrl);
-                httpRequestBase.addHeader("charset", ENCODING);
                 if (httpEntity == null && !forceQueryParams) {
                     httpEntity = buildEncodedFormEntity();
                 }

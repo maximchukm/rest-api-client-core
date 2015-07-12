@@ -17,6 +17,7 @@ public class HttpException extends Exception {
     private String reasonPhrase;
     private String body;
 
+    @Deprecated
     public HttpException(HttpResponse response) {
         StatusLine statusLine = response.getStatusLine();
         errorCode = statusLine.getStatusCode();
@@ -30,6 +31,10 @@ public class HttpException extends Exception {
             }
         }
 
+    }
+
+    public HttpException(int code) {
+        this.errorCode = code;
     }
 
     @Override

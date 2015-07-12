@@ -25,15 +25,19 @@ import java.util.Map;
 public final class RestApiMethod {
 
     private static final String ENCODING = "UTF-8";
-    private String name;
-    private Type type;
-    private List<Header> headers;
+
+    protected Type type;
+    protected String name;
+    protected Map<String, String> headers = new HashMap<String, String>();
+    protected boolean forceQueryParams = false;
+
+    @Deprecated
+    private List<Header> apacheHeaders;
 
     protected int timeout = 10000;
     protected StatusLine statusLine;
 
     private Map<String, Object> params = new HashMap<String, Object>();
-    private boolean forceQueryParams = false;
 
     private String contentType;
     private HttpEntity httpEntity;
@@ -41,6 +45,9 @@ public final class RestApiMethod {
     public RestApiMethod(String name, Type type) {
         this.name = name;
         this.type = type;
+        if (type == Type.GET || type == Type.DELETE) {
+            forceQueryParams = true;
+        }
     }
 
     public RestApiMethod(Type type) {
@@ -51,11 +58,16 @@ public final class RestApiMethod {
         this.timeout = timeoutMillis;
     }
 
+    public void addHeader(String name, String value) {
+        headers.put(name, value);
+    }
+
+    @Deprecated
     public void addHeader(Header header) {
-        if (headers == null) {
-            headers = new ArrayList<Header>();
+        if (apacheHeaders == null) {
+            apacheHeaders = new ArrayList<Header>();
         }
-        headers.add(header);
+        apacheHeaders.add(header);
     }
 
     public void forceQueryParams(boolean force) {
@@ -90,16 +102,29 @@ public final class RestApiMethod {
         setByteData(data, "application/octet-stream");
     }
 
+    protected String paramString() {
+        StringBuffer paramBuffer = new StringBuffer();
+        for (Map.Entry<String, Object> param: params.entrySet()) {
+            paramBuffer.append(param.getKey()).append("=").append(param.getValue()).append("&");
+        }
+        if (paramBuffer.length() > 0) {
+            paramBuffer.deleteCharAt(paramBuffer.length() - 1);
+        }
+        return paramBuffer.toString();
+    }
+
+    @Deprecated
     public void setHttpEntity(HttpEntity httpEntity, String contentType) {
         this.httpEntity = httpEntity;
         this.contentType = contentType;
     }
 
+    @Deprecated
     public StatusLine getStatusLine() {
         return statusLine;
     }
 
-    protected HttpRequestBase prepareHttpRequest(String serverControllerUrl) throws IOException {
+    protected HttpRequestBase prepareHttpRequest(String serverControllerUrl) throws IOException{
         HttpRequestBase httpRequestBase = null;
         if (name != null) {
             serverControllerUrl += "/" + name;
@@ -141,8 +166,8 @@ public final class RestApiMethod {
             break;
         }
 
-        if (headers != null) {
-            for (Header header : headers) {
+        if (apacheHeaders != null) {
+            for (Header header : apacheHeaders) {
                 httpRequestBase.addHeader(header);
             }
         }

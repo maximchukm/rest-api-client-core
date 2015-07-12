@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
  * @author Maxim Maximchuk
  *         date 18.08.2014.
  */
+@Deprecated
 public abstract class AbstractClient {
 
     protected static final String CONTENT_DISPOSITION_HEADER = "Content-Disposition";

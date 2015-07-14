@@ -4,7 +4,6 @@ import com.maximchuk.rest.client.http.HttpException;
 import com.maximchuk.rest.client.oauth.OAuthCredential;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -50,12 +49,8 @@ public class DefaultClient {
             } else if (method.content != null) {
                 writeRequest(connection, method.content.bytes);
             }
-            int code = connection.getResponseCode();
-            InputStream in = connection.getInputStream();
-            byte[] response = new byte[in.available()];
-            in.read(response);
             RestApiResponse restApiResponse = new RestApiResponse(connection);
-            if (code >= 200 && code < 400) {
+            if (restApiResponse.getStatusCode() >= 200 && restApiResponse.getStatusCode() < 400) {
                 return restApiResponse;
             } else {
                 throw new HttpException(restApiResponse);

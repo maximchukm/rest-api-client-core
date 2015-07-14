@@ -135,15 +135,15 @@ public final class RestApiMethod {
         }
         switch (type) {
             case GET: {
-                httpRequestBase = new HttpGet(serverControllerUrl + paramString());
+                httpRequestBase = new HttpGet(serverControllerUrl + "?" + paramString());
             }
             break;
             case DELETE: {
-                httpRequestBase = new HttpDelete(serverControllerUrl + paramString());
+                httpRequestBase = new HttpDelete(serverControllerUrl + "?" + paramString());
             }
             break;
             case POST: {
-                httpRequestBase = forceQueryParams ? new HttpPost(serverControllerUrl + paramString()) : new HttpPost(serverControllerUrl);
+                httpRequestBase = forceQueryParams ? new HttpPost(serverControllerUrl + "?" + paramString()) : new HttpPost(serverControllerUrl);
                 if (httpEntity == null && !forceQueryParams) {
                     httpEntity = buildEncodedFormEntity();
                 }
@@ -156,7 +156,7 @@ public final class RestApiMethod {
             }
             break;
             case PUT: {
-                httpRequestBase = forceQueryParams ? new HttpPut(serverControllerUrl + paramString()) : new HttpPut(serverControllerUrl);
+                httpRequestBase = forceQueryParams ? new HttpPut(serverControllerUrl + "?" + paramString()) : new HttpPut(serverControllerUrl);
                 if (httpEntity == null && !forceQueryParams) {
                     httpEntity = buildEncodedFormEntity();
                 }

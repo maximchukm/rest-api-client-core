@@ -1,5 +1,6 @@
 package com.maximchuk.rest.client.core;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -21,12 +22,18 @@ public class RestApiResponse {
     public RestApiResponse(HttpURLConnection connection) throws IOException {
         this.statusCode = connection.getResponseCode();
 
-        InputStream in = connection.getInputStream();
+        InputStream is = connection.getInputStream();
+        byte[] buf = new byte[2048];
+
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
         try {
-            content = new byte[in.available()];
-            in.read(content);
+            int len;
+            while ((len = is.read(buf)) != -1) {
+                bout.write(buf, 0, len);
+            }
+            content = bout.toByteArray();
         } finally {
-            in.close();
+            is.close();
         }
 
         String contentDispositionHeader = connection.getHeaderField(CONTENT_DISPOSITION_HEADER);

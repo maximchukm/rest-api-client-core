@@ -29,12 +29,18 @@ public class DefaultClient {
     }
 
     public RestApiResponse executeMethod(RestApiMethod method) throws IOException, HttpException{
-        String urlString = serverUrl + "/" + controllerName + "/" + method.name;
+        StringBuilder urlBuilder = new StringBuilder(serverUrl);
+        if (controllerName != null) {
+            urlBuilder.append("/").append(controllerName);
+        }
+        if (method.name != null) {
+            urlBuilder.append("/").append(method.name);
+        }
         if (method.forceQueryParams) {
-            urlString += "?" + method.paramString();
+            urlBuilder.append("?").append(method.paramString());
         }
         HttpURLConnection connection =
-                (HttpURLConnection) new URL(urlString).openConnection();
+                (HttpURLConnection) new URL(urlBuilder.toString()).openConnection();
         try {
             connection.setRequestMethod(method.type.name());
             connection.setConnectTimeout(method.timeout);
@@ -47,6 +53,7 @@ public class DefaultClient {
             if (!method.forceQueryParams) {
                 writeRequest(connection, method.paramString().getBytes());
             } else if (method.content != null) {
+                connection.setRequestProperty("Content-Type", method.content.contentType);
                 writeRequest(connection, method.content.bytes);
             }
             RestApiResponse restApiResponse = new RestApiResponse(connection);

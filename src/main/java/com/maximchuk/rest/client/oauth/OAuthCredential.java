@@ -1,7 +1,9 @@
 package com.maximchuk.rest.client.oauth;
 
+import com.maximchuk.rest.client.core.RestApiResponse;
 import com.maximchuk.rest.client.http.HttpException;
 import com.maximchuk.rest.client.http.HttpFormParamBuilder;
+import com.maximchuk.rest.client.util.StringParamBuilder;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -14,10 +16,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Serializable;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,48 +62,56 @@ public class OAuthCredential {
      * @throws HttpException
      */
     public void authorize() throws IOException, HttpException {
-        HttpFormParamBuilder paramBuilder = null;
+        StringParamBuilder paramBuilder = null;
 
-        if (username != null && password != null) {
-            paramBuilder = new HttpFormParamBuilder();
-            paramBuilder.addParam("grant_type", "password");
-            paramBuilder.addParam("redirect_uri", redirectUri);
-            paramBuilder.addParam("username", username);
-            paramBuilder.addParam("password", password);
-            paramBuilder.addParam("client_secret", clientSecret);
-            paramBuilder.addParam("client_id", clientId);
-        }
+        paramBuilder = new StringParamBuilder();
+        paramBuilder.putParam("grant_type", "password");
+        paramBuilder.putParam("redirect_uri", redirectUri);
+        paramBuilder.putParam("username", username);
+        paramBuilder.putParam("password", password);
+        paramBuilder.putParam("client_secret", clientSecret);
+        paramBuilder.putParam("client_id", clientId);
 
-        HttpPost post = new HttpPost(tokenEndPointUrl);
-
-        HttpEntity httpEntity = new UrlEncodedFormEntity(paramBuilder.getParams(), "UTF-8");
-        post.setEntity(httpEntity);
-        HttpResponse resp = clientExecute(post);
-
-        if (resp.getStatusLine().getStatusCode() == 200) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
+        HttpURLConnection connection =
+                (HttpURLConnection) new URL(tokenEndPointUrl).openConnection();
+        try {
+            connection.setRequestMethod("POST");
+            connection.setConnectTimeout(timeout);
+            connection.setDoOutput(true);
+            OutputStream out = connection.getOutputStream();
             try {
-                JSONObject json = new JSONObject(reader.readLine());
-                accessToken = json.getString("access_token");
-                refreshToken = json.getString("refresh_token");
-                expires = json.getInt("expires_in");
-                fireAuthorizeListeners();
-            } catch (JSONException e) {
-                e.printStackTrace();
+                out.write(paramBuilder.build().getBytes());
             } finally {
-                reader.close();
+                out.close();
             }
-        } else {
-            throw new HttpException(resp);
+
+            RestApiResponse restApiResponse = new RestApiResponse(connection);
+            if (restApiResponse.getStatusCode() == 200) {
+                try {
+                    JSONObject json = new JSONObject(restApiResponse.getString());
+                    accessToken = json.getString("access_token");
+                    refreshToken = json.getString("refresh_token");
+                    expires = json.getInt("expires_in");
+                    fireAuthorizeListeners();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                throw new HttpException(restApiResponse);
+            }
+        } finally {
+            connection.disconnect();
         }
     }
 
+    @Deprecated
     public void authorize(OAuthUser user) {
         accessToken = user.accessToken;
         refreshToken = user.refreshToken;
         fireAuthorizeListeners();
     }
 
+    @Deprecated
     public List<OAuthUser> authorizeSocial() throws IOException, HttpException {
         HttpFormParamBuilder paramBuilder = new HttpFormParamBuilder();
         paramBuilder.addParam("grant_type", "authorization_code");
@@ -154,33 +163,41 @@ public class OAuthCredential {
      */
     public void refresh() throws IOException, HttpException {
         if (refreshToken != null) {
-            HttpPost post = new HttpPost(tokenEndPointUrl);
+            StringParamBuilder paramBuilder = new StringParamBuilder();
+            paramBuilder.putParam("grant_type", "refresh_token");
+            paramBuilder.putParam("redirect_uri", redirectUri);
+            paramBuilder.putParam("client_secret", clientSecret);
+            paramBuilder.putParam("client_id", clientId);
+            paramBuilder.putParam("refresh_token", refreshToken);
 
-            HttpFormParamBuilder paramBuilder = new HttpFormParamBuilder();
-            paramBuilder.addParam("grant_type", "refresh_token");
-            paramBuilder.addParam("redirect_uri", redirectUri);
-            paramBuilder.addParam("client_secret", clientSecret);
-            paramBuilder.addParam("client_id", clientId);
-            paramBuilder.addParam("refresh_token", refreshToken);
+            HttpURLConnection connection = (HttpURLConnection) new URL(tokenEndPointUrl).openConnection();
 
-            HttpEntity httpEntity = new UrlEncodedFormEntity(paramBuilder.getParams(), "UTF-8");
-            post.setEntity(httpEntity);
-            HttpResponse resp = clientExecute(post);
-
-            if (resp.getStatusLine().getStatusCode() == 200) {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
+            try {
+                connection.setRequestMethod("POST");
+                connection.setConnectTimeout(timeout);
+                connection.setDoOutput(true);
+                OutputStream out = connection.getOutputStream();
                 try {
-                    JSONObject json = new JSONObject(reader.readLine());
-                    accessToken = json.getString("access_token");
-                    expires = json.getInt("expires_in");
-                    fireRefreshTokenListeners();
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    out.write(paramBuilder.build().getBytes());
                 } finally {
-                    reader.close();
+                    out.close();
                 }
-            } else {
-                throw new HttpException(resp);
+
+                RestApiResponse restApiResponse = new RestApiResponse(connection);
+                if (restApiResponse.getStatusCode() == 200) {
+                    try {
+                        JSONObject json = new JSONObject(restApiResponse.getString());
+                        accessToken = json.getString("access_token");
+                        expires = json.getInt("expires_in");
+                        fireAuthorizeListeners();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    throw new HttpException(restApiResponse);
+                }
+            } finally {
+                connection.disconnect();
             }
         } else {
             throw new IllegalArgumentException("refresh token is null");
@@ -233,13 +250,13 @@ public class OAuthCredential {
     }
 
     private void fireAuthorizeListeners() {
-        for (OAuthTokenListener listener: listeners) {
+        for (OAuthTokenListener listener : listeners) {
             listener.authorize(new OAuthTokenEvent(refreshToken, accessToken, expires));
         }
     }
 
     private void fireRefreshTokenListeners() {
-        for (OAuthTokenListener listener: listeners) {
+        for (OAuthTokenListener listener : listeners) {
             listener.refreshToken(new OAuthTokenEvent(refreshToken, accessToken, expires));
         }
     }

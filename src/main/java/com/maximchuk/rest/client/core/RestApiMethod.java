@@ -1,5 +1,6 @@
 package com.maximchuk.rest.client.core;
 
+import com.maximchuk.rest.client.util.StringParamBuilder;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
@@ -179,14 +180,7 @@ public final class RestApiMethod {
     }
 
     protected String paramString() {
-        StringBuilder paramBuilder = new StringBuilder();
-        for (Map.Entry<String, Object> param: params.entrySet()) {
-            paramBuilder.append(param.getKey()).append("=").append(param.getValue()).append("&");
-        }
-        if (paramBuilder.length() > 0) {
-            paramBuilder.deleteCharAt(paramBuilder.length() - 1);
-        }
-        return paramBuilder.toString();
+        return new StringParamBuilder(params).build();
     }
 
     @Deprecated

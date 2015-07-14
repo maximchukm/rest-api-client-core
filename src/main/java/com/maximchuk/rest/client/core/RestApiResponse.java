@@ -18,7 +18,7 @@ public class RestApiResponse {
     private byte[] content;
     private FileEntity fileEntity;
 
-    protected RestApiResponse(HttpURLConnection connection) throws IOException {
+    public RestApiResponse(HttpURLConnection connection) throws IOException {
         this.statusCode = connection.getResponseCode();
 
         InputStream in = connection.getInputStream();

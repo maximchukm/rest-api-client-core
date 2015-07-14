@@ -1,5 +1,6 @@
 package com.maximchuk.rest.client.http;
 
+import com.maximchuk.rest.client.core.RestApiResponse;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 
@@ -15,6 +16,8 @@ public class HttpException extends Exception {
 
     private int errorCode;
     private String reasonPhrase;
+
+    @Deprecated
     private String body;
 
     @Deprecated
@@ -33,8 +36,9 @@ public class HttpException extends Exception {
 
     }
 
-    public HttpException(int code) {
-        this.errorCode = code;
+    public HttpException(RestApiResponse restApiResponse) {
+        this.errorCode = restApiResponse.getStatusCode();
+        this.reasonPhrase = restApiResponse.getString();
     }
 
     @Override
@@ -53,6 +57,7 @@ public class HttpException extends Exception {
         return reasonPhrase;
     }
 
+    @Deprecated
     public String getBody() {
         return body;
     }

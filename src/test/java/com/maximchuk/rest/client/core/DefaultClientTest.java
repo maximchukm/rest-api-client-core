@@ -39,7 +39,7 @@ public class DefaultClientTest {
             RestApiMethod method = new RestApiMethod("sync-case", RestApiMethod.Type.GET);
             method.putParam("device_id", DEVICE_ID);
             method.putParam("case", "all");
-            String response = client.executeMethod(method);
+            RestApiResponse response = client.executeMethod(method);
             Assert.assertTrue(response != null);
         } catch (Exception e) {
             Assert.fail(e.getMessage());

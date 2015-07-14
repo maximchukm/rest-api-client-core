@@ -30,16 +30,22 @@ public final class RestApiMethod {
     protected String name;
     protected Map<String, String> headers = new HashMap<String, String>();
     protected boolean forceQueryParams = false;
+    protected RestApiContent content;
 
     @Deprecated
     private List<Header> apacheHeaders;
 
     protected int timeout = 10000;
+
+    @Deprecated
     protected StatusLine statusLine;
 
     private Map<String, Object> params = new HashMap<String, Object>();
 
+    @Deprecated
     private String contentType;
+
+    @Deprecated
     private HttpEntity httpEntity;
 
     public RestApiMethod(String name, Type type) {
@@ -82,35 +88,32 @@ public final class RestApiMethod {
         params.put(name, value);
     }
 
+    public void setContent(RestApiContent content) {
+        this.content = content;
+    }
+
+    @Deprecated
     public void setStringData(String string) throws UnsupportedEncodingException {
         httpEntity = new StringEntity(string, ENCODING);
         addHeader(new BasicHeader("charset", ENCODING));
     }
 
+    @Deprecated
     public void setJsonStringData(String jsonString) throws UnsupportedEncodingException {
         contentType = "application/json";
         httpEntity = new StringEntity(jsonString, ENCODING);
         addHeader(new BasicHeader("charset", ENCODING));
     }
 
+    @Deprecated
     public void setByteData(byte[] data, String contentType) {
         this.contentType = contentType;
         httpEntity = new ByteArrayEntity(data);
     }
 
+    @Deprecated
     public void setByteData(byte[] data) {
         setByteData(data, "application/octet-stream");
-    }
-
-    protected String paramString() {
-        StringBuffer paramBuffer = new StringBuffer();
-        for (Map.Entry<String, Object> param: params.entrySet()) {
-            paramBuffer.append(param.getKey()).append("=").append(param.getValue()).append("&");
-        }
-        if (paramBuffer.length() > 0) {
-            paramBuffer.deleteCharAt(paramBuffer.length() - 1);
-        }
-        return paramBuffer.toString();
     }
 
     @Deprecated
@@ -131,15 +134,15 @@ public final class RestApiMethod {
         }
         switch (type) {
             case GET: {
-                httpRequestBase = new HttpGet(serverControllerUrl + buildQueryParamString());
+                httpRequestBase = new HttpGet(serverControllerUrl + paramString());
             }
             break;
             case DELETE: {
-                httpRequestBase = new HttpDelete(serverControllerUrl + buildQueryParamString());
+                httpRequestBase = new HttpDelete(serverControllerUrl + paramString());
             }
             break;
             case POST: {
-                httpRequestBase = forceQueryParams ? new HttpPost(serverControllerUrl + buildQueryParamString()) : new HttpPost(serverControllerUrl);
+                httpRequestBase = forceQueryParams ? new HttpPost(serverControllerUrl + paramString()) : new HttpPost(serverControllerUrl);
                 if (httpEntity == null && !forceQueryParams) {
                     httpEntity = buildEncodedFormEntity();
                 }
@@ -152,7 +155,7 @@ public final class RestApiMethod {
             }
             break;
             case PUT: {
-                httpRequestBase = forceQueryParams ? new HttpPut(serverControllerUrl + buildQueryParamString()) : new HttpPut(serverControllerUrl);
+                httpRequestBase = forceQueryParams ? new HttpPut(serverControllerUrl + paramString()) : new HttpPut(serverControllerUrl);
                 if (httpEntity == null && !forceQueryParams) {
                     httpEntity = buildEncodedFormEntity();
                 }
@@ -175,19 +178,18 @@ public final class RestApiMethod {
         return httpRequestBase;
     }
 
-    private String buildQueryParamString() {
+    protected String paramString() {
         StringBuilder paramBuilder = new StringBuilder();
-        if (!params.isEmpty()) {
-            paramBuilder.append("?");
-            for (String key : params.keySet()) {
-                paramBuilder.append(key).append("=").append(params.get(key));
-                paramBuilder.append("&");
-            }
+        for (Map.Entry<String, Object> param: params.entrySet()) {
+            paramBuilder.append(param.getKey()).append("=").append(param.getValue()).append("&");
+        }
+        if (paramBuilder.length() > 0) {
             paramBuilder.deleteCharAt(paramBuilder.length() - 1);
         }
         return paramBuilder.toString();
     }
 
+    @Deprecated
     private UrlEncodedFormEntity buildEncodedFormEntity() throws UnsupportedEncodingException {
         UrlEncodedFormEntity entity = null;
         if (!params.isEmpty()) {

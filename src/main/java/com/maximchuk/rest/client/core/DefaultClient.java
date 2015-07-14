@@ -29,7 +29,7 @@ public class DefaultClient {
         this.credential = credential;
     }
 
-    public String executeMethod(RestApiMethod method) throws IOException, HttpException{
+    public RestApiResponse executeMethod(RestApiMethod method) throws IOException, HttpException{
         String urlString = serverUrl + "/" + controllerName + "/" + method.name;
         if (method.forceQueryParams) {
             urlString += "?" + method.paramString();
@@ -46,24 +46,31 @@ public class DefaultClient {
                 connection.setRequestProperty("Authorization", "Bearer " + credential.getAccessToken());
             }
             if (!method.forceQueryParams) {
-                OutputStream out = connection.getOutputStream();
-                try {
-                    out.write(method.paramString().getBytes());
-                } finally {
-                    out.close();
-                }
+                writeRequest(connection, method.paramString().getBytes());
+            } else if (method.content != null) {
+                writeRequest(connection, method.content.bytes);
             }
             int code = connection.getResponseCode();
+            InputStream in = connection.getInputStream();
+            byte[] response = new byte[in.available()];
+            in.read(response);
+            RestApiResponse restApiResponse = new RestApiResponse(connection);
             if (code >= 200 && code < 400) {
-                InputStream in = connection.getInputStream();
-                byte[] response = new byte[in.available()];
-                in.read(response);
-                return new String(response, "UTF8");
+                return restApiResponse;
             } else {
-                throw new HttpException(code);
+                throw new HttpException(restApiResponse);
             }
         } finally {
             connection.disconnect();
+        }
+    }
+
+    private void writeRequest(HttpURLConnection connection, byte[] bytes) throws IOException {
+        OutputStream out = connection.getOutputStream();
+        try {
+            out.write(bytes);
+        } finally {
+            out.close();
         }
     }
 

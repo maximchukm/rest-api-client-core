@@ -22,7 +22,12 @@ public class RestApiResponse {
     public RestApiResponse(HttpURLConnection connection) throws IOException {
         this.statusCode = connection.getResponseCode();
 
-        InputStream is = connection.getInputStream();
+        InputStream is;
+        try {
+            is = connection.getInputStream();
+        } catch (IOException e) {
+            is = connection.getErrorStream();
+        }
         byte[] buf = new byte[2048];
 
         ByteArrayOutputStream bout = new ByteArrayOutputStream();

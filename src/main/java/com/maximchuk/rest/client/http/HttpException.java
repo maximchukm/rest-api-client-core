@@ -15,9 +15,10 @@ import java.io.InputStreamReader;
 public class HttpException extends Exception {
 
     private int errorCode;
-    private String reasonPhrase;
 
     @Deprecated
+    private String reasonPhrase;
+
     private String body;
 
     @Deprecated
@@ -38,13 +39,15 @@ public class HttpException extends Exception {
 
     public HttpException(RestApiResponse restApiResponse) {
         this.errorCode = restApiResponse.getStatusCode();
-        this.reasonPhrase = restApiResponse.getString();
+        this.body = restApiResponse.getString();
     }
 
     @Override
     public String getMessage() {
         StringBuilder messageBuilder = new StringBuilder(String.valueOf(errorCode));
-        messageBuilder.append(" ").append(reasonPhrase);
+        if (reasonPhrase != null) {
+            messageBuilder.append(" ").append(reasonPhrase);
+        }
         messageBuilder.append(" ").append(body);
         return messageBuilder.toString();
     }

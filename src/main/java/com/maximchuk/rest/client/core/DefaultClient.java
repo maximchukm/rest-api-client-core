@@ -28,7 +28,7 @@ public class DefaultClient {
         this.credential = credential;
     }
 
-    public RestApiResponse executeMethod(RestApiMethod method) throws IOException, HttpException{
+    public RestApiResponse executeMethod(RestApiMethod method) throws IOException, HttpException {
         StringBuilder urlBuilder = new StringBuilder(serverUrl);
         if (controllerName != null) {
             urlBuilder.append("/").append(controllerName);
@@ -44,17 +44,17 @@ public class DefaultClient {
         try {
             connection.setRequestMethod(method.type.name());
             connection.setConnectTimeout(method.timeout);
-            for (Map.Entry<String, String> header: method.headers.entrySet()) {
+            for (Map.Entry<String, String> header : method.headers.entrySet()) {
                 connection.setRequestProperty(header.getKey(), header.getValue());
             }
             if (credential != null) {
                 connection.setRequestProperty("Authorization", "Bearer " + credential.getAccessToken());
             }
-            if (!method.forceQueryParams) {
-                writeRequest(connection, method.paramString().getBytes());
-            } else if (method.content != null) {
+            if (method.content != null) {
                 connection.setRequestProperty("Content-Type", method.content.contentType);
                 writeRequest(connection, method.content.bytes);
+            } else if (!method.forceQueryParams) {
+                writeRequest(connection, method.paramString().getBytes());
             }
             RestApiResponse restApiResponse = new RestApiResponse(connection);
             if (restApiResponse.getStatusCode() >= 200 && restApiResponse.getStatusCode() < 400) {

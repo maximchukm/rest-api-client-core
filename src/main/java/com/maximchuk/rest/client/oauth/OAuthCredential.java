@@ -2,21 +2,13 @@ package com.maximchuk.rest.client.oauth;
 
 import com.maximchuk.rest.client.core.RestApiResponse;
 import com.maximchuk.rest.client.http.HttpException;
-import com.maximchuk.rest.client.http.HttpFormParamBuilder;
 import com.maximchuk.rest.client.util.StringParamBuilder;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -33,7 +25,6 @@ public class OAuthCredential {
     private String authCode;
     private String username;
     private String password;
-    private String facebookToken;
     private String redirectUri;
     private String clientSecret;
     private String clientId;
@@ -102,56 +93,6 @@ public class OAuthCredential {
         } finally {
             connection.disconnect();
         }
-    }
-
-    @Deprecated
-    public void authorize(OAuthUser user) {
-        accessToken = user.accessToken;
-        refreshToken = user.refreshToken;
-        fireAuthorizeListeners();
-    }
-
-    @Deprecated
-    public List<OAuthUser> authorizeSocial() throws IOException, HttpException {
-        HttpFormParamBuilder paramBuilder = new HttpFormParamBuilder();
-        paramBuilder.addParam("grant_type", "authorization_code");
-        paramBuilder.addParam("client_id", clientId);
-        paramBuilder.addParam("client_secret", clientSecret);
-        paramBuilder.addParam("redirect_uri", redirectUri);
-        paramBuilder.addParam("code_type", "facebook");
-        paramBuilder.addParam("code", facebookToken);
-
-        HttpPost post = new HttpPost(tokenEndPointUrl);
-
-        HttpEntity httpEntity = new UrlEncodedFormEntity(paramBuilder.getParams(), "UTF-8");
-        post.setEntity(httpEntity);
-        HttpResponse resp = clientExecute(post);
-
-        List<OAuthUser> users = new ArrayList<OAuthUser>();
-        if (resp.getStatusLine().getStatusCode() == 200) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
-            try {
-                JSONArray jsonArray = new JSONArray(reader.readLine());
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject jsonObject = jsonArray.getJSONObject(i);
-
-                    OAuthUser user = new OAuthUser();
-                    user.name = jsonObject.getString("name");
-                    user.accessToken = jsonObject.getString("access_token");
-                    user.refreshToken = jsonObject.getString("refresh_token");
-                    user.expires = jsonObject.getInt("expires_in");
-                    users.add(user);
-                }
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            } finally {
-                reader.close();
-            }
-        } else {
-            throw new HttpException(resp);
-        }
-        return users;
     }
 
     /**
@@ -261,14 +202,6 @@ public class OAuthCredential {
         }
     }
 
-    private HttpResponse clientExecute(HttpPost httpPost) throws IOException {
-        HttpClient httpClient = new DefaultHttpClient();
-        HttpParams params = httpClient.getParams();
-        HttpConnectionParams.setConnectionTimeout(params, timeout);
-        HttpConnectionParams.setSoTimeout(params, timeout);
-        return httpClient.execute(httpPost);
-    }
-
     /**
      * Builder of OAuthCredential
      */
@@ -357,17 +290,6 @@ public class OAuthCredential {
          */
         public Builder password(String password) {
             credential.password = password;
-            return this;
-        }
-
-        /**
-         * Set facebookToken. Required for authorization via facebook
-         *
-         * @param facebookToken facebook access token
-         * @return this builder
-         */
-        public Builder facebookToken(String facebookToken) {
-            credential.facebookToken = facebookToken;
             return this;
         }
 

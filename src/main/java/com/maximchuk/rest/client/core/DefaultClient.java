@@ -1,7 +1,7 @@
 package com.maximchuk.rest.client.core;
 
+import com.maximchuk.rest.client.auth.Credential;
 import com.maximchuk.rest.client.http.HttpException;
-import com.maximchuk.rest.client.oauth.OAuthCredential;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -15,7 +15,7 @@ import java.util.Map;
  */
 public class DefaultClient {
 
-    private OAuthCredential credential;
+    private Credential credential;
     private String serverUrl;
     private String controllerName;
 
@@ -24,7 +24,7 @@ public class DefaultClient {
         this.controllerName = controllerName;
     }
 
-    public void setCredential(OAuthCredential credential) {
+    public void setCredential(Credential credential) {
         this.credential = credential;
     }
 
@@ -48,7 +48,7 @@ public class DefaultClient {
                 connection.setRequestProperty(header.getKey(), header.getValue());
             }
             if (credential != null) {
-                connection.setRequestProperty("Authorization", "Bearer " + credential.getAccessToken());
+                connection.setRequestProperty("Authorization", credential.getAuthorizationString());
             }
             if (method.content != null) {
                 connection.setRequestProperty("Content-Type", method.content.contentType);

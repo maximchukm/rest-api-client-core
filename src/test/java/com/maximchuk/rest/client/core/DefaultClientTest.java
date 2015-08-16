@@ -1,10 +1,12 @@
 package com.maximchuk.rest.client.core;
 
 import com.maximchuk.rest.client.auth.BasicHttpCredential;
+import com.maximchuk.rest.client.auth.OAuthBearerCredential;
 import org.codehaus.jettison.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
-import sun.misc.BASE64Encoder;
+
+import javax.xml.bind.DatatypeConverter;
 
 /**
  * @author Maxim Maximchuk
@@ -29,8 +31,8 @@ public class DefaultClientTest {
     @Test
     public void testExecuteMethodWithBasicHttpCredential() throws Exception {
         try {
-            String username = "testUser";
-            String password = "somePassword";
+            String username = "test_user";
+            String password = "some_password";
 
             DefaultClient client = new DefaultClient("http://headers.jsontest.com", "/");
             client.setCredential(BasicHttpCredential.create(username, password));
@@ -40,7 +42,26 @@ public class DefaultClientTest {
 
             System.out.println(response.getString());
             Assert.assertEquals(new JSONObject(response.getString()).getString("Authorization"),
-                    "Basic " + new BASE64Encoder().encode((username + ":" + password).getBytes()));
+                    "Basic " + DatatypeConverter.printBase64Binary((username + ":" + password).getBytes()));
+        } catch (Exception e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testExecuteMethodWithOAuthBearerCredential() throws Exception {
+        try {
+            String accessToken = "some_token";
+
+            DefaultClient client = new DefaultClient("http://headers.jsontest.com", "/");
+            client.setCredential(OAuthBearerCredential.create(accessToken));
+
+            RestApiMethod method = new RestApiMethod(RestApiMethod.Type.GET);
+            RestApiResponse response = client.executeMethod(method);
+
+            System.out.println(response.getString());
+            Assert.assertEquals(new JSONObject(response.getString()).getString("Authorization"),
+                    "Bearer " + accessToken);
         } catch (Exception e) {
             Assert.fail(e.getMessage());
         }

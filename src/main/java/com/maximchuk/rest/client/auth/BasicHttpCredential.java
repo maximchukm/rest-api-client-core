@@ -1,7 +1,7 @@
 package com.maximchuk.rest.client.auth;
 
 
-import sun.misc.BASE64Encoder;
+import javax.xml.bind.DatatypeConverter;
 
 /**
  * @author Maxim Maximchuk
@@ -32,6 +32,6 @@ public class BasicHttpCredential implements Credential {
 
     @Override
     public String getAuthorizationString() {
-        return "Basic " + new BASE64Encoder().encode((username + ":" + password).getBytes());
+        return "Basic " + DatatypeConverter.printBase64Binary((username + ":" + password).getBytes());
     }
 }

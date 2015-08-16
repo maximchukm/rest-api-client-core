@@ -43,8 +43,8 @@ public final class RestApiMethod {
         headers.put(name, value);
     }
 
-    public void forceQueryParams(boolean force) {
-        forceQueryParams = force;
+    public void forceQueryParams() {
+        forceQueryParams = true;
     }
 
     public void setParams(Map<String, Object> params) {

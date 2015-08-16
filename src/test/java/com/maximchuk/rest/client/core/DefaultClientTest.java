@@ -18,10 +18,14 @@ public class DefaultClientTest {
     public void testExecuteMethod() throws Exception {
         try {
             DefaultClient client = new DefaultClient("http://md5.jsontest.com", "/");
+
             RestApiMethod method = new RestApiMethod(RestApiMethod.Type.GET);
             method.putParam("text", "someText");
+
             RestApiResponse response = client.executeMethod(method);
+
             System.out.println(response.getString());
+
             Assert.assertTrue(response.getStatusCode() == 200);
         } catch (Exception e) {
             Assert.fail(e.getMessage());
@@ -41,8 +45,9 @@ public class DefaultClientTest {
             RestApiResponse response = client.executeMethod(method);
 
             System.out.println(response.getString());
-            Assert.assertEquals(new JSONObject(response.getString()).getString("Authorization"),
-                    "Basic " + DatatypeConverter.printBase64Binary((username + ":" + password).getBytes()));
+
+            Assert.assertEquals("Basic " + DatatypeConverter.printBase64Binary((username + ":" + password).getBytes()),
+                    new JSONObject(response.getString()).getString("Authorization"));
         } catch (Exception e) {
             Assert.fail(e.getMessage());
         }
@@ -60,8 +65,9 @@ public class DefaultClientTest {
             RestApiResponse response = client.executeMethod(method);
 
             System.out.println(response.getString());
-            Assert.assertEquals(new JSONObject(response.getString()).getString("Authorization"),
-                    "Bearer " + accessToken);
+
+            Assert.assertEquals("Bearer " + accessToken,
+                    new JSONObject(response.getString()).getString("Authorization"));
         } catch (Exception e) {
             Assert.fail(e.getMessage());
         }

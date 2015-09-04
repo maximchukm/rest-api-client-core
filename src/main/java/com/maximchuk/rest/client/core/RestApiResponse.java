@@ -70,7 +70,7 @@ public class RestApiResponse {
 
     public String getString() {
         try {
-            return new String(content, "UTF8");
+            return content != null? new String(content, "UTF8"): null;
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }

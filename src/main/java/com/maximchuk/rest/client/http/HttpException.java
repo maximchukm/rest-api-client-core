@@ -48,7 +48,9 @@ public class HttpException extends Exception {
         if (reasonPhrase != null) {
             messageBuilder.append(" ").append(reasonPhrase);
         }
-        messageBuilder.append(" ").append(body);
+        if (body != null) {
+            messageBuilder.append(" ").append(body);
+        }
         return messageBuilder.toString();
     }
 

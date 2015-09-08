@@ -16,6 +16,7 @@ public class RestApiResponse {
     private static final String FILENAME_PREF = "filename=";
 
     public static final String ANDROID_401_MESSAGE = "No authentication challenges found";
+    public static final String ANDROID_NULL_TOKEN = "Received authentication challenge is null";
 
     private int statusCode;
     private byte[] content;
@@ -25,7 +26,7 @@ public class RestApiResponse {
         try {
             this.statusCode = connection.getResponseCode();
         } catch (IOException e) { // android hook for 401
-            if (e.getMessage().equals(ANDROID_401_MESSAGE)) {
+            if (e.getMessage().equals(ANDROID_401_MESSAGE) || e.getMessage().equals(ANDROID_NULL_TOKEN)) {
                 statusCode = 401;
                 return;
             } else {

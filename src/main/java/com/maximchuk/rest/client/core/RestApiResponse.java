@@ -15,12 +15,24 @@ public class RestApiResponse {
     private static final String CONTENT_DISPOSITION_HEADER = "Content-Disposition";
     private static final String FILENAME_PREF = "filename=";
 
+    public static final String ANDROID_401_MESSAGE = "No authentication challenges found";
+    public static final String ANDROID_NULL_TOKEN = "Received authentication challenge is null";
+
     private int statusCode;
     private byte[] content;
     private FileEntity fileEntity;
 
     public RestApiResponse(HttpURLConnection connection) throws IOException {
-        this.statusCode = connection.getResponseCode();
+        try {
+            this.statusCode = connection.getResponseCode();
+        } catch (IOException e) { // android hook for 401
+            if (e.getMessage().equals(ANDROID_401_MESSAGE) || e.getMessage().equals(ANDROID_NULL_TOKEN)) {
+                statusCode = 401;
+                return;
+            } else {
+                throw e;
+            }
+        }
 
         InputStream is;
         try {
@@ -59,7 +71,7 @@ public class RestApiResponse {
 
     public String getString() {
         try {
-            return new String(content, "UTF8");
+            return content != null? new String(content, "UTF8"): null;
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }

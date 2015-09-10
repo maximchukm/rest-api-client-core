@@ -68,6 +68,7 @@ public class DefaultClient {
     }
 
     private void writeRequest(HttpURLConnection connection, byte[] bytes) throws IOException {
+        connection.setDoOutput(true);
         OutputStream out = connection.getOutputStream();
         try {
             out.write(bytes);

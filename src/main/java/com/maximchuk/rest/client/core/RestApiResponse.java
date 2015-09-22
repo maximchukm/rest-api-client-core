@@ -40,17 +40,19 @@ public class RestApiResponse {
         } catch (IOException e) {
             is = connection.getErrorStream();
         }
-        byte[] buf = new byte[2048];
+        if (is != null) {
+            byte[] buf = new byte[2048];
 
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        try {
-            int len;
-            while ((len = is.read(buf)) != -1) {
-                bout.write(buf, 0, len);
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            try {
+                int len;
+                while ((len = is.read(buf)) != -1) {
+                    bout.write(buf, 0, len);
+                }
+                content = bout.toByteArray();
+            } finally {
+                is.close();
             }
-            content = bout.toByteArray();
-        } finally {
-            is.close();
         }
 
         String contentDispositionHeader = connection.getHeaderField(CONTENT_DISPOSITION_HEADER);

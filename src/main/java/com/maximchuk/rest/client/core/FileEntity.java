@@ -9,7 +9,7 @@ public class FileEntity {
     private String name;
     private byte[] body;
 
-    protected FileEntity(String name, byte[] body) {
+    public FileEntity(String name, byte[] body) {
         this.name = name;
         this.body = body;
     }

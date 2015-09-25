@@ -51,8 +51,8 @@ public class DefaultClient {
                 connection.setRequestProperty("Authorization", "Bearer " + credential.getAccessToken());
             }
             if (method.content != null) {
-                connection.setRequestProperty("Content-Type", method.content.contentType);
-                writeRequest(connection, method.content.bytes);
+                connection.setRequestProperty("Content-Type", method.content.getContentType());
+                writeRequest(connection, method.content.getBytes());
             } else if (!method.forceQueryParams) {
                 writeRequest(connection, method.paramString().getBytes());
             }

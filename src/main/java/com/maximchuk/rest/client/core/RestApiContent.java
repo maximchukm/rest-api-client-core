@@ -6,8 +6,11 @@ package com.maximchuk.rest.client.core;
  */
 public class RestApiContent {
 
-    protected String contentType;
-    protected byte[] bytes;
+    private String contentType;
+    private byte[] bytes;
+
+    protected RestApiContent() {
+    }
 
     private RestApiContent(String contentType, byte[] content) {
         this.contentType = contentType;
@@ -28,5 +31,13 @@ public class RestApiContent {
 
     public static RestApiContent createJson(String jsonString) {
         return create("application/json", jsonString.getBytes());
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public byte[] getBytes() {
+        return bytes;
     }
 }

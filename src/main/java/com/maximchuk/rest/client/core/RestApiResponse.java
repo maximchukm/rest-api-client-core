@@ -13,18 +13,22 @@ import java.net.HttpURLConnection;
 public class RestApiResponse {
 
     private static final String CONTENT_DISPOSITION_HEADER = "Content-Disposition";
+    private static final String CONTENT_TYPE_HEADER = "content-type";
+
     private static final String FILENAME_PREF = "filename=";
 
-    public static final String ANDROID_401_MESSAGE = "No authentication challenges found";
-    public static final String ANDROID_NULL_TOKEN = "Received authentication challenge is null";
+    private static final String ANDROID_401_MESSAGE = "No authentication challenges found";
+    private static final String ANDROID_NULL_TOKEN = "Received authentication challenge is null";
 
     private int statusCode;
+    private String contentType;
     private byte[] content;
     private FileEntity fileEntity;
 
     public RestApiResponse(HttpURLConnection connection) throws IOException {
         try {
             this.statusCode = connection.getResponseCode();
+            this.contentType = connection.getHeaderField(CONTENT_TYPE_HEADER);
         } catch (IOException e) { // android hook for 401
             if (e.getMessage() != null && (e.getMessage().equals(ANDROID_401_MESSAGE) || e.getMessage().equals(ANDROID_NULL_TOKEN))) {
                 statusCode = 401;
@@ -65,6 +69,10 @@ public class RestApiResponse {
 
     public int getStatusCode() {
         return statusCode;
+    }
+
+    public String getContentType() {
+        return contentType;
     }
 
     public byte[] getBytes() {

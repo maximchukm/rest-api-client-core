@@ -285,12 +285,25 @@ public class OAuthCredential {
          * @return OAuthCredential
          */
         public OAuthCredential build() {
-            if (credential.tokenEndPointUrl == null
-                    || credential.clientId == null
-                    || credential.clientSecret == null
-                    || credential.redirectUri == null) {
-                throw new IllegalArgumentException("url, clientId, clientSecret and redirectUri must be set");
+            StringBuilder stringBuilder = new StringBuilder();
+            if (credential.tokenEndPointUrl == null) {
+                stringBuilder.append("url, ");
             }
+            if (credential.clientId == null) {
+                stringBuilder.append("clientId, ");
+            }
+            if (credential.clientSecret == null) {
+                stringBuilder.append("clientSecret, ");
+            }
+            if (credential.redirectUri == null) {
+                stringBuilder.append("redirectUri, ");
+            }
+            if (stringBuilder.length() > 0) {
+                stringBuilder.delete(stringBuilder.length() - 2, stringBuilder.length() - 1);
+                stringBuilder.append("must be set");
+                throw new IllegalArgumentException(stringBuilder.toString());
+            }
+
             return credential;
         }
 

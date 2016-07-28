@@ -273,7 +273,7 @@ public class OAuthCredential {
      * Builder of OAuthCredential
      */
     public static class Builder {
-        private static OAuthCredential credential;
+        private OAuthCredential credential;
 
         private Builder() {
             credential = new OAuthCredential();
